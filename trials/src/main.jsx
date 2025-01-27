@@ -1,7 +1,5 @@
 import ReactDOM from 'react-dom/client'
-import App from './App.jsx'
-
-let counter = 1
+import App3 from './App3.jsx'
 
 const root = ReactDOM.createRoot(document.getElementById('root'))
-root.render(<App />)
+root.render(<App3 />)
