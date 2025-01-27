@@ -1,23 +1,35 @@
-const sum = (p1, p2) => {
-  console.log(p1)
-  console.log(p2)
-  return p1 + p2
+import {useState} from 'react'
+
+const Display = (props) => {
+  return (<div>{props.counter}</div>)
 }
 
-const square = p => p * p
-
-function foo(){
-  return 'bar'
+const Button = (props) => {
+  return (
+    <button onClick={props.onClick}>
+      {props.text}
+    </button>
+  )
 }
 
 const App = () => {
-  const t = [1, 2, 3, 4, 5, 6]
-  const t2 = t.map(square)
+  const [counter, setCounter] = useState(0)
+
+  const increaseByOne = () => setCounter(counter + 1)
+  const decreaseByOne = () => {
+    if(counter - 1 >= 0) 
+      setCounter(counter - 1)
+  }
+  
+  const setToZero = () => setCounter(0)
+  
   return (
-    <>
-      <h1>{t}</h1>
-      <h1>{foo()}</h1>
-    </>
+    <div>
+      <Display counter={counter} />
+      <Button text='plus' onClick={increaseByOne} />
+      <Button text='minus' onClick={decreaseByOne} />
+      <Button text='reset' onClick={setToZero} />
+    </div>
   )
 }
 
