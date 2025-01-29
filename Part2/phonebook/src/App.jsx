@@ -1,10 +1,42 @@
 import { useState } from 'react'
 
-const Contacts = ({persons, search}) => {
+const Filter = ({newSearch, handleSearchChange}) => {
+  return (
+    <div>
+      filter shown with <input value={newSearch} onChange={handleSearchChange}/>
+    </div>
+  )
+}
+
+const PersonForm = ({addContact, handleNameChange, handleNumberChange, newName, newNumber}) => {
+  return (
+    <form onSubmit={addContact}>
+      <div>
+        name: <input value={newName} onChange={handleNameChange}/>
+      </div>
+      <div>
+        number: <input value={newNumber} onChange={handleNumberChange}/>
+      </div>
+      <div>
+        <button type="submit">add</button>
+      </div>
+    </form>
+  )
+}
+
+const Person = ({name, number}) => {
+  return (
+    <li>{name} {number}</li>
+  )
+}
+
+const Persons = ({persons, search}) => {
   const searchedPersons = persons.filter((person) => (person.name.toLowerCase().includes(search.toLowerCase())))
   console.log(searchedPersons)
   return (
-    (searchedPersons.map((person) => <li key={person.id}>{person.name} {person.number}</li>))
+    <ul>
+      {(searchedPersons.map((person) => <Person key={person.id} name={person.name} number={person.number} />))}
+    </ul>
   )
 }
 
@@ -55,25 +87,17 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
-      <div>
-        filter shown with <input value={newSearch} onChange={handleSearchChange}/>
-      </div>
+
+      <Filter newSearch={newSearch} handleSearchChange={handleSearchChange}/>
+
       <h2>Add a new</h2>
-      <form onSubmit={addContact}>
-        <div>
-          name: <input value={newName} onChange={handleNameChange}/>
-        </div>
-        <div>
-          number: <input value={newNumber} onChange={handleNumberChange}/>
-        </div>
-        <div>
-          <button type="submit">add</button>
-        </div>
-      </form>
+
+      <PersonForm addContact={addContact} handleNameChange={handleNameChange} handleNumberChange={handleNumberChange}
+        newName={newName} newNumber={newNumber}/>
+
       <h2>Numbers</h2>
-      <ul>
-        <Contacts persons={persons} search={newSearch}/>
-      </ul>
+
+      <Persons persons={persons} search={newSearch}/>    
     </div>
   )
 }
