@@ -1,86 +1,73 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
-const Filter = ({newSearch, handleSearchChange}) => {
-  return (
-    <div>
-      filter shown with <input value={newSearch} onChange={handleSearchChange}/>
-    </div>
-  )
-}
+import contactService from './services/contacts'
 
-const PersonForm = ({addContact, handleNameChange, handleNumberChange, newName, newNumber}) => {
-  return (
-    <form onSubmit={addContact}>
-      <div>
-        name: <input value={newName} onChange={handleNameChange}/>
-      </div>
-      <div>
-        number: <input value={newNumber} onChange={handleNumberChange}/>
-      </div>
-      <div>
-        <button type="submit">add</button>
-      </div>
-    </form>
-  )
-}
-
-const Person = ({name, number}) => {
-  return (
-    <li>{name} {number}</li>
-  )
-}
-
-const Persons = ({persons, search}) => {
-  const searchedPersons = persons.filter((person) => (person.name.toLowerCase().includes(search.toLowerCase())))
-  console.log(searchedPersons)
-  return (
-    <ul>
-      {(searchedPersons.map((person) => <Person key={person.id} name={person.name} number={person.number} />))}
-    </ul>
-  )
-}
+import { Filter, PersonForm, Persons } from './components/personComponents'
 
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: 'Arto Hellas', number: '040-123456', id: 1 },
-    { name: 'Ada Lovelace', number: '39-44-5323523', id: 2 },
-    { name: 'Dan Abramov', number: '12-43-234345', id: 3 },
-    { name: 'Mary Poppendieck', number: '39-23-6423122', id: 4 }
-  ])
+  const [persons, setPersons] = useState([])
 
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [newSearch, setNewSearch] = useState('')
 
+  useEffect(
+    () => {
+      contactService
+        .addAllContacts()
+        .then(contacts => {
+          setPersons(contacts)
+        })
+    }
+  , [])
+
   const addContact = (event) => {
     event.preventDefault()
-    if(persons.some(person => person.name === newName)){
-      alert(`${newName} is already added in the phonebook`)
+    const existingPerson = persons.find(person => person.name === newName)
+    if(existingPerson !== undefined){
+      if (window.confirm(`${newName} is already added in the phonebook, replace the old number with a new one?`)){
+        const personToUpdate = {...existingPerson, number: newNumber}
+        contactService
+          .updateContactRemote(existingPerson.id, personToUpdate)
+          .then(updatedPerson => {
+            setPersons(persons.map(person => person.id === updatedPerson.id ? updatedPerson : person))
+            setNewName('')
+            setNewNumber('')
+          })
+      }
       return
     }
     const personObject = {
       name: newName,
-      number: newNumber,
-      id: persons.length + 1
+      number: newNumber
     }
 
-    setPersons(persons.concat(personObject))
-    setNewName('')
-    setNewNumber('')
+    contactService
+      .addContactRemote(personObject)
+      .then(addedPerson => {
+        setPersons(persons.concat(addedPerson))
+        setNewName('')
+        setNewNumber('')
+      })
+  }
+
+  const deleteContactWithID = id => {
+    contactService.deleteContactRemote(id)
+      .then(response => {
+        const newPersons = persons.filter(person => person.id !== id)
+        setPersons(newPersons)
+      })
   }
 
   const handleNameChange = (event) => {
-    console.log(event.target.value)
     setNewName(event.target.value)
   }
 
   const handleNumberChange = (event) => {
-    console.log(event.target.value)
     setNewNumber(event.target.value)
   }
 
   const handleSearchChange = (event) => {
-    console.log(event.target.value)
     setNewSearch(event.target.value)
   }
 
@@ -97,7 +84,7 @@ const App = () => {
 
       <h2>Numbers</h2>
 
-      <Persons persons={persons} search={newSearch}/>    
+      <Persons persons={persons} search={newSearch} deleteContactWithID={deleteContactWithID}/>    
     </div>
   )
 }
