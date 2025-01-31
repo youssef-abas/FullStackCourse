@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import contactService from './services/contacts'
 
 import { Filter, PersonForm, Persons } from './components/personComponents'
+import Notification from './components/Notification'
 
 const App = () => {
   const [persons, setPersons] = useState([])
@@ -10,6 +11,8 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [newSearch, setNewSearch] = useState('')
+  const [notification, setNotification] = useState(null)
+  const [operationSuccess, setOperationSuccess] = useState(true)
 
   useEffect(
     () => {
@@ -33,6 +36,21 @@ const App = () => {
             setPersons(persons.map(person => person.id === updatedPerson.id ? updatedPerson : person))
             setNewName('')
             setNewNumber('')
+
+            setNotification(`Updated ${updatedPerson.name}'s number from ${existingPerson.number} to ${updatedPerson.number}`)
+            setTimeout(() => {
+            setNotification(null)
+        }, 5000)
+          })
+          .catch(error =>{
+            setOperationSuccess(false)
+            setNotification(`Information of ${existingPerson.name} has already been removed from server`)
+            setTimeout(() => {
+              setNotification(null)
+            }, 5000)
+
+            const newPersons = persons.filter(person => existingPerson.id !== person.id)
+            setPersons(newPersons)
           })
       }
       return
@@ -48,14 +66,27 @@ const App = () => {
         setPersons(persons.concat(addedPerson))
         setNewName('')
         setNewNumber('')
+
+        setOperationSuccess(true)
+        setNotification(`Added ${addedPerson.name}`)
+        setTimeout(() => {
+          setNotification(null)
+        }, 5000)
       })
   }
 
   const deleteContactWithID = id => {
     contactService.deleteContactRemote(id)
       .then(response => {
+        const deletedPerson = persons.find(person => person.id === id)
         const newPersons = persons.filter(person => person.id !== id)
         setPersons(newPersons)
+
+        setOperationSuccess(true)
+        setNotification(`Deleted ${deletedPerson.name}'s contact`)
+            setTimeout(() => {
+            setNotification(null)
+        }, 5000)
       })
   }
 
@@ -74,6 +105,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={notification} success={operationSuccess}/>
 
       <Filter newSearch={newSearch} handleSearchChange={handleSearchChange}/>
 
